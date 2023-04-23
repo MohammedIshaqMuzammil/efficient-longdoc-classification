@@ -291,7 +291,10 @@ def vectorize_labels_yelp(all_labels):
     all_set = []
     for split in all_labels:
         for labels in all_labels[split]:
-            all_set.extend([int(label) for label in labels])
+            if isinstance(labels, float):
+                all_set.append(int(labels))
+            else:
+                all_set.extend([int(label) for label in labels])
     all_set = list(set(all_set))
 
     mlb = MultiLabelBinarizer()
@@ -302,10 +305,12 @@ def vectorize_labels_yelp(all_labels):
 
     result = {}
     for split in all_labels:
-        result[split] = mlb.transform(all_labels[split])
+        if isinstance(all_labels[split], float):
+            result[split] = mlb.transform([[int(all_labels[split])]])
+        else:
+            result[split] = mlb.transform(all_labels[split])
 
     return result, num_labels
-
 
 
 def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json'):
