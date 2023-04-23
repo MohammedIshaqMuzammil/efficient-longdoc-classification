@@ -4,12 +4,20 @@ import glob
 import tqdm
 import jsonlines
 import pandas as pd
+import numpy as np
 import re
 from sklearn import preprocessing
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.model_selection import train_test_split
 from pytorch_lightning import seed_everything
+from transformers import *
+import torch
+from transformers.data.processors.utils import InputExample
+from torch import nn
+from torch.autograd import Variable
+from torch.utils.data import TensorDataset, DataLoader
+from torch.optim import Adam
 
 def read_hyperpartisan_data(hyper_file_path):
     """
@@ -265,6 +273,57 @@ def vectorize_labels(all_labels):
 
     return result, num_labels
 
+
+
+#PROPER YELP
+def prepare_yelp_data(yelp_path='./BERT2/yelp_academic_dataset_review.json'):
+    """
+    Load Yelp dataset and prepare the datasets
+    :param yelp_path: path to the Yelp file
+    :return: dicts of lists of documents and labels and number of labels
+    """
+    if not os.path.exists(yelp_path):
+        raise Exception("Data path not found: {}".format(yelp_path))
+
+    text_set = {'train': [], 'dev': [], 'test': []}
+    label_set = {'train': [], 'dev': [], 'test': []}
+
+    with open(yelp_path) as file:
+        for i, line in tqdm.tqdm(enumerate(file)):
+            if i>=20000:
+                break
+            data = json.loads(line)
+            text = data['text']
+            label = data['stars']
+            if label == 3:
+                continue  # skip neutral reviews
+            split = get_split()
+            text_set[split].append(text)
+            label_set[split].append(label)
+
+    vectorized_labels, num_labels = vectorize_labels(label_set)
+
+    return text_set, vectorized_labels, num_labels
+
+def get_split(train_pct=0.8, dev_pct=0.1):
+    """
+    Get the split for the current example
+    :param train_pct: percentage of data to use for training
+    :param dev_pct: percentage of data to use for development
+    :return: 'train', 'dev', or 'test'
+    """
+    r = np.random.random()
+    if r < train_pct:
+        return 'train'
+    elif r < train_pct + dev_pct:
+        return 'dev'
+    else:
+        return 'test'
+
+
+
+
+#YELP CRAP
 def load_yelpdataset_data(json_reader, book_path):
     """
     Load the Yelp Dataset Summary and split it into train/dev/test sets.
@@ -291,10 +350,59 @@ def load_yelpdataset_data(json_reader, book_path):
         if len(df) == nrows:
             return df
         
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
 def prepare_yelpdataset_data(book_path='./BERT2/yelp_academic_dataset_review.json'):
     reader = pd.read_json(book_path, lines=True, chunksize=10000)
     train_df = load_yelpdataset_data(reader)
     test_df = load_yelpdataset_data(reader)
+
+    tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
+    model = BertForSequenceClassification.from_pretrained('bert-base-cased', num_labels=200)
+    model.classifier.add_module('bert_activation', nn.Tanh())
+    model.classifier.add_module('prediction', nn.Linear(200, 5))
+
+    FINE_TUNE = True
+    #print(f'Total model trainable parameters {count_parameters(model)}')
+    if FINE_TUNE:
+        for param in model.bert.parameters():
+            param.requires_grad = False
+
+        for param in model.classifier.parameters():
+            param.requires_grad = True
+        #print(f'Total head trainable parameters {count_parameters(model)}')
+    model.cuda();
+
+    model.classifier
+
+def prepare_yelpdataset_data2(df, text_col, label_col, tokenizer):
+    l = [InputExample(guid=idx, text_a=df.loc[idx, text_col], label=df.loc[idx, label_col]) for 
+       idx, row in tqdm(df.iterrows(), total=df.shape[0])]
+    features = glue_convert_examples_to_features(examples=l, 
+                                    tokenizer=tokenizer,
+                                    max_length=300,
+                                    label_list = df[label_col].values,
+                                    output_mode='regression')
+
+    all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
+    all_attention_mask = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
+    all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
+    all_labels = torch.tensor([f.label-1 for f in features], dtype=torch.long)
+    dataset = TensorDataset(all_input_ids, all_attention_mask, all_labels)
+    return dataset
+
+def prepare_yelpdataset_data3(train_df, test_df):
+    train_dataset = prepare_yelpdataset_data2(train_df, 'text', 'stars')
+    test_dataset = prepare_yelpdataset_data2(test_df, 'text', 'stars')
+    val_idx, train_idx = train_test_split(np.arange(len(train_dataset)), random_state=4, train_size=0.1)
+    total_size = len(train_dataset)
+    val_dataset = TensorDataset(*train_dataset[val_idx])
+    train_dataset = TensorDataset(*train_dataset[train_idx])
+    assert total_size == len(val_dataset) + len(train_dataset)
+
+
+
 
 
 if __name__ == "__main__":
@@ -329,4 +437,10 @@ if __name__ == "__main__":
     assert len(pair_text_set['train']) == len(pair_label_set['train']) == 5115
     assert len(pair_text_set['dev']) == len(pair_label_set['dev']) == 639
     assert len(pair_text_set['test']) == len(pair_label_set['test']) == 639
+
+    yelp_text_set, yelp_label_set, yelp_num_labels = prepare_yelp_data('./data/yelp_academic_dataset_review.json')
+    assert yelp_num_labels == 5
+    assert len(yelp_text_set['train']) == len(yelp_label_set['train']) == 16000
+    assert len(yelp_text_set['dev']) == len(yelp_label_set['dev']) == 2000
+    assert len(yelp_text_set['test']) == len(yelp_label_set['test']) == 2000
 

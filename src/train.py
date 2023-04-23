@@ -314,6 +314,10 @@ if __name__ == "__main__":
         label_type = 'binary_class'
         text_set, label_set, num_labels = dataloader.prepare_hyperpartisan_data()
 
+    elif args.data.lower() == 'yelp':
+        label_type = 'multi_label'
+        text_set, label_set, num_labels = dataloader.prepare_yelp_data()
+
     else:
         raise Exception("Data not found: {}".format(args.data))
 
