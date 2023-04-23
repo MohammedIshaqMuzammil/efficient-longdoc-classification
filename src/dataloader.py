@@ -279,7 +279,7 @@ def vectorize_labels(all_labels):
 
 
 #PROPER YELP
-def prepare_yelp_data(yelp_path='./BERT2/yelp_academic_dataset_review.json'):
+def prepare_yelp_data(yelp_path='BERT2/yelp_academic_dataset_review.json'):
     """
     Load Yelp dataset and prepare the datasets
     :param yelp_path: path to the Yelp file
