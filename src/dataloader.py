@@ -11,13 +11,16 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.model_selection import train_test_split
 from pytorch_lightning import seed_everything
-from transformers import *
+
+#Crap Libraries
+""" from transformers import *
 import torch
 from transformers.data.processors.utils import InputExample
 from torch import nn
 from torch.autograd import Variable
 from torch.utils.data import TensorDataset, DataLoader
 from torch.optim import Adam
+ """
 
 def read_hyperpartisan_data(hyper_file_path):
     """
