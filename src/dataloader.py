@@ -288,8 +288,14 @@ def vectorize_labels_yelp(all_labels):
     :param all_labels: dict with labels with keys 'train', 'dev', 'test'
     :return: dict of vectorized labels per split and total number of labels
     """
+    all_set = []
+    for split in all_labels:
+        for labels in all_labels[split]:
+            all_set.extend([int(label) for label in labels])
+    all_set = list(set(all_set))
+
     mlb = MultiLabelBinarizer()
-    mlb.fit(all_labels['train'])
+    mlb.fit([all_set])
     num_labels = len(mlb.classes_)
 
     print(f'Total number of labels: {num_labels}')
