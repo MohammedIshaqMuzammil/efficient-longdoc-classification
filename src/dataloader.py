@@ -281,7 +281,7 @@ def vectorize_labels(all_labels):
 #PROPER YELP
 
 
-def vectorize_labels_yelp(all_labels):
+def vectorize_labels_yelp_old(all_labels):
     """
     Combine labels across all data and reformat the labels e.g. [1, 2, ..., 123, 343, 4] --> [[1, 0, 0], [0, 1, 0], ..., [0, 0, 1]]
     Only used for multi-class classification
@@ -311,6 +311,26 @@ def vectorize_labels_yelp(all_labels):
             result[split] = mlb.transform(all_labels[split])
 
     return result, num_labels
+
+
+
+def vectorize_labels_yelp(labels):
+    """
+    Convert list of labels to binary vectors.
+    Only used for multi-class classification
+    :param labels: list of labels, where each label is an integer
+    :return: binary vectors for the labels
+    """
+    if isinstance(labels[0], int):
+        labels = [[label] for label in labels]
+    mlb = MultiLabelBinarizer()
+    vectorized_labels = mlb.fit_transform(labels)
+    num_labels = vectorized_labels.shape[1]
+    print(f'Total number of labels: {num_labels}')
+    return vectorized_labels, num_labels
+
+
+
 
 def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json', num_samples=20000):
     """
