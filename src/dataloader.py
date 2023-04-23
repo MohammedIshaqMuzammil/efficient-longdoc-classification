@@ -315,7 +315,7 @@ def vectorize_labels_yelp_old(all_labels):
 
 
 
-def vectorize_labels_yelp(labels):
+def vectorize_labels_yelp(all_labels):
     """
     Convert list of labels to binary vectors.
     Only used for multi-class classification
@@ -323,28 +323,32 @@ def vectorize_labels_yelp(labels):
     :return: binary vectors for the labels
     """
     all_set = []
-    for split in labels:
-        if split in labels:
-            for label in labels[split]:
-                if isinstance(label, float):
-                    all_set.append(int(label))
-                else:
-                    all_set.extend([int(l) for l in label])
+    for split in all_labels:
+        for labels in all_labels[split]:
+            if isinstance(labels, int):
+                all_set.append(labels)
+            elif isinstance(labels, float):
+                all_set.append(int(labels))
+            else:
+                all_set.extend([int(label) for label in labels])
     all_set = list(set(all_set))
 
-    mlb = LabelBinarizer()
+    mlb = MultiLabelBinarizer()
     mlb.fit([all_set])
     num_labels = len(mlb.classes_)
 
     print(f'Total number of labels: {num_labels}')
 
     result = {}
-    for split in labels:
-        if split in labels:
-            result[split] = mlb.transform(labels[split])
+    for split in all_labels:
+        if isinstance(all_labels[split][0], int):
+            result[split] = mlb.transform([[label] for label in all_labels[split]])
+        elif isinstance(all_labels[split][0], float):
+            result[split] = mlb.transform([[int(all_labels[split][0])]])
+        else:
+            result[split] = mlb.transform(all_labels[split])
 
     return result, num_labels
-
 
 
 def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json', num_samples=20000):
