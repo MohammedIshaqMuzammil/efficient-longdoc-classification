@@ -332,7 +332,8 @@ def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json', num_sa
             data = json.loads(line)
             text = data['text']
             label = int(data['stars'])
-            split = get_yelp_split(data['split'])
+            #split = get_yelp_split(data['split'])
+            split = get_split()
 
             text_set[split].append(text)
             label_set[split].append(label)
