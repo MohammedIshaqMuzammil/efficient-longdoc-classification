@@ -326,7 +326,7 @@ def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json', num_sa
     label_set = {'train': [], 'dev': [], 'test': []}
 
     with open(yelp_path) as f:
-        for i, line in tqdm(enumerate(f)):
+        for i, line in tqdm.tqdm(enumerate(f)):
             if num_samples and i >= num_samples:
                 break
             data = json.loads(line)
