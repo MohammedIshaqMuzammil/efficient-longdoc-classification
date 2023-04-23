@@ -279,6 +279,29 @@ def vectorize_labels(all_labels):
 
 
 #PROPER YELP
+
+
+def vectorize_labels_yelp(all_labels):
+    """
+    Combine labels across all data and reformat the labels e.g. [1, 2, ..., 123, 343, 4] --> [[1, 0, 0], [0, 1, 0], ..., [0, 0, 1]]
+    Only used for multi-class classification
+    :param all_labels: dict with labels with keys 'train', 'dev', 'test'
+    :return: dict of vectorized labels per split and total number of labels
+    """
+    mlb = MultiLabelBinarizer()
+    mlb.fit(all_labels['train'])
+    num_labels = len(mlb.classes_)
+
+    print(f'Total number of labels: {num_labels}')
+
+    result = {}
+    for split in all_labels:
+        result[split] = mlb.transform(all_labels[split])
+
+    return result, num_labels
+
+
+
 def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json'):
     """
     Load Yelp dataset and prepare the datasets
@@ -304,7 +327,7 @@ def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json'):
             text_set[split].append(text)
             label_set[split].append(label)
 
-    vectorized_labels, num_labels = vectorize_labels(label_set)
+    vectorized_labels, num_labels = vectorize_labels_yelp(label_set)
 
     return text_set, vectorized_labels, num_labels
 
@@ -446,4 +469,5 @@ if __name__ == "__main__":
     assert len(yelp_text_set['train']) == len(yelp_label_set['train']) == 16000
     assert len(yelp_text_set['dev']) == len(yelp_label_set['dev']) == 2000
     assert len(yelp_text_set['test']) == len(yelp_label_set['test']) == 2000
+    print("MAIN DATALOADER MEOW") #TESTING SUCCESS OF THE ASSERTIONS
 
