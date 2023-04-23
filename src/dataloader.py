@@ -8,6 +8,7 @@ import numpy as np
 import re
 from sklearn import preprocessing
 from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.preprocessing import LabelBinarizer
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.model_selection import train_test_split
 from pytorch_lightning import seed_everything
@@ -321,14 +322,28 @@ def vectorize_labels_yelp(labels):
     :param labels: list of labels, where each label is an integer
     :return: binary vectors for the labels
     """
-    if isinstance(labels[0], int):
-        labels = [[label] for label in labels]
-    mlb = MultiLabelBinarizer()
-    vectorized_labels = mlb.fit_transform(labels)
-    num_labels = vectorized_labels.shape[1]
-    print(f'Total number of labels: {num_labels}')
-    return vectorized_labels, num_labels
+    all_set = []
+    for split in labels:
+        if split in labels:
+            for label in labels[split]:
+                if isinstance(label, float):
+                    all_set.append(int(label))
+                else:
+                    all_set.extend([int(l) for l in label])
+    all_set = list(set(all_set))
 
+    mlb = LabelBinarizer()
+    mlb.fit([all_set])
+    num_labels = len(mlb.classes_)
+
+    print(f'Total number of labels: {num_labels}')
+
+    result = {}
+    for split in labels:
+        if split in labels:
+            result[split] = mlb.transform(labels[split])
+
+    return result, num_labels
 
 
 
