@@ -298,7 +298,7 @@ def vectorize_labels_yelp(all_labels):
     all_set = list(set(all_set))
 
     mlb = MultiLabelBinarizer()
-    mlb.fit([all_set])
+    mlb.fit_transform([[label] for label in all_set])
     num_labels = len(mlb.classes_)
 
     print(f'Total number of labels: {num_labels}')
@@ -312,11 +312,11 @@ def vectorize_labels_yelp(all_labels):
 
     return result, num_labels
 
-
-def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json'):
+def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json', num_samples=20000):
     """
     Load Yelp dataset and prepare the datasets
-    :param yelp_path: path to the Yelp file
+    :param yelp_path: path to the Yelp JSON file
+    :param num_samples: number of samples to load (set to None to load all)
     :return: dicts of lists of documents and labels and number of labels
     """
     if not os.path.exists(yelp_path):
@@ -325,22 +325,34 @@ def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json'):
     text_set = {'train': [], 'dev': [], 'test': []}
     label_set = {'train': [], 'dev': [], 'test': []}
 
-    with open(yelp_path) as file:
-        for i, line in tqdm.tqdm(enumerate(file)):
-            if i>=20000:
+    with open(yelp_path) as f:
+        for i, line in tqdm(enumerate(f)):
+            if num_samples and i >= num_samples:
                 break
             data = json.loads(line)
             text = data['text']
-            label = data['stars']
-            if label == 3:
-                continue  # skip neutral reviews
-            split = get_split()
+            label = int(data['stars'])
+            split = get_yelp_split(data['split'])
+
             text_set[split].append(text)
             label_set[split].append(label)
 
     vectorized_labels, num_labels = vectorize_labels_yelp(label_set)
 
     return text_set, vectorized_labels, num_labels
+
+
+def get_yelp_split(s):
+    if s == 'train':
+        return 'train'
+    elif s == 'dev':
+        return 'dev'
+    elif s == 'test':
+        return 'test'
+    else:
+        raise ValueError(f"Invalid split value: {s}") 
+
+
 
 def get_split(train_pct=0.8, dev_pct=0.1):
     """
