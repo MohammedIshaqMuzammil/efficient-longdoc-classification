@@ -265,6 +265,38 @@ def vectorize_labels(all_labels):
 
     return result, num_labels
 
+def load_yelpdataset_data(json_reader, book_path):
+    """
+    Load the Yelp Dataset Summary and split it into train/dev/test sets.
+    :param book_path: path to the booksummaries.txt file
+    :return train, dev, test as pandas data frames
+    """
+    nrows=10000
+    min_length=100
+    max_length=128
+    df = None
+    while True:
+        df_candidate = next(json_reader)
+        df_candidate = df_candidate.loc[(df_candidate['text'].str.len() > min_length) & (df_candidate['text'].str.len() <= max_length), ['text', 'stars']]
+        if df is None:
+            df = df_candidate
+        else:
+            df = df.append(df_candidate)
+        for rating in range(1, 6, 1):
+            df_rating = df[df['stars'] == rating]
+            if len(df_rating) > nrows//5:
+                df_rating = df_rating.iloc[:nrows//5, :]
+                df = df.loc[~(df['stars'] == rating), :]
+                df = df.append(df_rating)
+        if len(df) == nrows:
+            return df
+        
+def prepare_yelpdataset_data(book_path='./BERT2/yelp_academic_dataset_review.json'):
+    reader = pd.read_json(book_path, lines=True, chunksize=10000)
+    train_df = load_yelpdataset_data(reader)
+    test_df = load_yelpdataset_data(reader)
+
+
 if __name__ == "__main__":
     seed_everything(3456)
     hyper_text_set, hyper_label_set, hyper_num_labels = prepare_hyperpartisan_data()
