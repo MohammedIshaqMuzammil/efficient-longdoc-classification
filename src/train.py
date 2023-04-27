@@ -397,7 +397,7 @@ if __name__ == "__main__":
         if args.ckpt:
             trainer = pl.Trainer(logger=logger,
                                  callbacks=ckpt_config,
-                                 gpus=1,
+                                 gpus=4,
                                  deterministic=True,
                                  log_gpu_memory='min_max',
                                  num_sanity_val_steps=0,
@@ -407,7 +407,7 @@ if __name__ == "__main__":
         else:
             trainer = pl.Trainer(logger=logger,
                                  callbacks=ckpt_config,
-                                 gpus=1,
+                                 gpus=4,
                                  deterministic=True,
                                  log_gpu_memory='min_max',
                                  num_sanity_val_steps=0,
@@ -446,7 +446,7 @@ if __name__ == "__main__":
             task.load_from_checkpoint(ckpt_path, model=model, lr=args.lr, scheduler=args.scheduler, label_type=label_type,
                                       num_labels=num_labels)
 
-            trainer = pl.Trainer(gpus=1)
+            trainer = pl.Trainer(gpus=4)
 
             for split in ['dev', 'test']:
                 logging.info("Evaluating on all documents in the {} set".format(split))
