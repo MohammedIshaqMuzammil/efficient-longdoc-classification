@@ -12,6 +12,7 @@ from sklearn.preprocessing import LabelBinarizer
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.model_selection import train_test_split
 from pytorch_lightning import seed_everything
+from collections import defaultdict
 
 #Crap Libraries
 """ from transformers import *
@@ -360,10 +361,11 @@ def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json', num_sa
     """
     if not os.path.exists(yelp_path):
         raise Exception("Data path not found: {}".format(yelp_path))
-
-    text_set = {'train': [], 'dev': [], 'test': []}
-    label_set = {'train': [], 'dev': [], 'test': []}
-
+ 
+    text_set = defaultdict(list)
+    label_set = defaultdict(list)
+    label_counts = defaultdict(int)
+ 
     with open(yelp_path) as f:
         for i, line in tqdm.tqdm(enumerate(f)):
             if num_samples and i >= num_samples:
@@ -371,16 +373,24 @@ def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json', num_sa
             data = json.loads(line)
             text = data['text']
             label = int(data['stars'])
-            #split = get_yelp_split(data['split'])
+ 
+            # Only keep examples with star ratings between 1 and 5
+            if label < 1 or label > 5:
+                continue
+ 
+            # Only keep 4000 examples for each star rating
+            if label_counts[label] >= 4000:
+                continue
+ 
             split = get_split()
-
+ 
             text_set[split].append(text)
             label_set[split].append(label)
-
+            label_counts[label] += 1
+ 
     vectorized_labels, num_labels = vectorize_labels_yelp(label_set)
-
+ 
     return text_set, vectorized_labels, num_labels
-
 
 def get_yelp_split(s):
     if s == 'train':
