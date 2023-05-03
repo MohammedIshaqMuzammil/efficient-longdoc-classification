@@ -352,7 +352,7 @@ def vectorize_labels_yelp(all_labels):
     return result, num_labels
 
 
-def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json', num_samples=20000):
+def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json', num_samples=90000):
     """
     Load Yelp dataset and prepare the datasets
     :param yelp_path: path to the Yelp JSON file
@@ -373,23 +373,30 @@ def prepare_yelp_data(yelp_path='data/yelp_academic_dataset_review.json', num_sa
             data = json.loads(line)
             text = data['text']
             label = int(data['stars'])
- 
+            #print('label:', label)
+
             # Only keep examples with star ratings between 1 and 5
             if label < 1 or label > 5:
                 continue
- 
+
             # Only keep 4000 examples for each star rating
             if label_counts[label] >= 4000:
                 continue
- 
+
             split = get_split()
- 
+
             text_set[split].append(text)
             label_set[split].append(label)
             label_counts[label] += 1
- 
+
+    #print(len(text_set['stars']))
+    #print("Label counts:", label_counts)
+    #print("******************************************************************************")
+    #print(type(label_set['stars']), label_set['stars'])
     vectorized_labels, num_labels = vectorize_labels_yelp(label_set)
- 
+    #label_df = pd.DataFrame({'stars': label_set['stars']})
+    #stars_counts = label_df['stars'].value_counts()
+    #print('stars_counts:', stars_counts)
     return text_set, vectorized_labels, num_labels
 
 def get_yelp_split(s):
@@ -538,12 +545,6 @@ if __name__ == "__main__":
     assert len(pair_text_set['test']) == len(pair_label_set['test']) == 639
 
     yelp_text_set, yelp_label_set, yelp_num_labels = prepare_yelp_data('data/yelp_academic_dataset_review.json')
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA$#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA$#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA$#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA$#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA$#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA$#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     assert yelp_num_labels == 5
     assert len(yelp_text_set['train']) == len(yelp_label_set['train']) == 16000
     assert len(yelp_text_set['dev']) == len(yelp_label_set['dev']) == 2000
