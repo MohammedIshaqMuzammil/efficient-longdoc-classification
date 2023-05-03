@@ -24,8 +24,8 @@ Please refer to our paper for more details and cite our paper if you find this r
 ### 1. Install required libraries
 
 ```
-pip install -r requirements.txt
-python -m spacy download en_core_web_sm
+conda env create -f environment.yml
+conda activate elc
 ```
 
 ### 2. Prepare the datasets
