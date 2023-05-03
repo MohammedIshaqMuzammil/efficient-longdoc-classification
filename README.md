@@ -84,6 +84,17 @@ tar -xf data/booksummaries.tar.gz -C data
 * Running `train.py` with the `--data books` flag reads and prepares the data from `data/booksummaries/booksummaries.txt`
 * Running `train.py` with the `--data books --pairs` flag creates Paired Book Summary by combining pairs of summaries and their labels
 
+#### Yelp Dataset
+
+* Available at <https://github.com/knowitall/yelp-dataset-challenge/raw/master/data/yelp_phoenix_academic_dataset/yelp_academic_dataset_review.json>
+
+```
+wget -P data/ https://github.com/knowitall/yelp-dataset-challenge/raw/master/data/yelp_phoenix_academic_dataset/yelp_academic_dataset_review.json.tar.gz
+tar -xf data/yelp_academic_dataset_review.tar.gz -C data
+```
+
+* Running `train.py` with the `--data yelp` flag reads and prepares the data from `data/yelp_academic_dataset_review.json`
+
 
 ### 3. Run the models
 
