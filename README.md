@@ -86,7 +86,7 @@ tar -xf data/booksummaries.tar.gz -C data
 
 #### Yelp Dataset
 
-* Available at <https://github.com/knowitall/yelp-dataset-challenge/raw/master/data/yelp_phoenix_academic_dataset/yelp_academic_dataset_review.json>
+* Available at <https://raw.githubusercontent.com/knowitall/yelp-dataset-challenge/master/data/yelp_phoenix_academic_dataset/yelp_academic_dataset_review.json>
 
 ```
 wget -P data/ https://github.com/knowitall/yelp-dataset-challenge/raw/master/data/yelp_phoenix_academic_dataset/yelp_academic_dataset_review.json.tar.gz
